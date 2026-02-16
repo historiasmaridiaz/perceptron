@@ -1,0 +1,1152 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perceptrón Neural - Sistema de Predicción IA</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: #0a0a0a;
+            color: #00ff88;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* FONDO ANIMADO FUTURISTA */
+        .background-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(90deg, rgba(0,255,136,0.05) 1px, transparent 1px),
+                linear-gradient(rgba(0,255,136,0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridScroll 20s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes gridScroll {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(50px); }
+        }
+
+        .background-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: float 15s infinite;
+            box-shadow: 0 0 10px #00ff88;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(50px); opacity: 0; }
+        }
+
+        /* CONTENEDOR PRINCIPAL */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* HEADER FUTURISTA */
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        .glitch-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4em;
+            font-weight: 900;
+            color: #00ff88;
+            text-transform: uppercase;
+            letter-spacing: 8px;
+            text-shadow: 
+                0 0 10px #00ff88,
+                0 0 20px #00ff88,
+                0 0 40px #00ff88,
+                0 0 80px #00ff88;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88; }
+            50% { text-shadow: 0 0 20px #00ff88, 0 0 40px #00ff88, 0 0 60px #00ff88; }
+        }
+
+        .subtitle {
+            font-size: 1.4em;
+            color: #00d4ff;
+            margin-top: 15px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            animation: fadeIn 2s;
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+            color: #000;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-top: 15px;
+            letter-spacing: 2px;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        /* CONTEXTO DEL EJEMPLO */
+        .prediction-context {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 212, 255, 0.1));
+            border: 2px solid #00ff88;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 50px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+        }
+
+        .prediction-context::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #00ff88, #00d4ff, #00ff88);
+            border-radius: 20px;
+            z-index: -1;
+            animation: borderGlow 3s linear infinite;
+            opacity: 0.5;
+        }
+
+        @keyframes borderGlow {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .context-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5em;
+            color: #00ff88;
+            text-align: center;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+
+        .context-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .context-card {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid #00d4ff;
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .context-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4);
+            border-color: #00ff88;
+        }
+
+        .context-card-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .context-card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5em;
+            color: #00d4ff;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .context-card-desc {
+            font-size: 1.2em;
+            line-height: 1.6;
+            color: #aaa;
+        }
+
+        .prediction-goal {
+            background: rgba(255, 0, 100, 0.1);
+            border: 3px solid #ff0066;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .prediction-goal-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2em;
+            color: #ff0066;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .prediction-goal-text {
+            font-size: 1.5em;
+            color: #fff;
+            line-height: 1.8;
+        }
+
+        /* PERCEPTRÓN FUTURISTA */
+        .perceptron-container {
+            background: rgba(0, 0, 0, 0.8);
+            border: 3px solid #00ff88;
+            border-radius: 30px;
+            padding: 60px 40px;
+            position: relative;
+            box-shadow: 
+                0 0 50px rgba(0, 255, 136, 0.3),
+                inset 0 0 50px rgba(0, 255, 136, 0.05);
+            margin-bottom: 50px;
+        }
+
+        .perceptron-flow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 30px;
+            margin: 40px 0;
+            position: relative;
+        }
+
+        /* ENTRADAS FUTURISTAS */
+        .input-section {
+            display: flex;
+            flex-direction: column;
+            gap: 35px;
+        }
+
+        .input-node {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            animation: slideInLeft 0.8s ease;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .input-circle {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+            font-size: 1em;
+            box-shadow: 
+                0 0 30px rgba(0, 255, 136, 0.6),
+                inset 0 0 20px rgba(255, 255, 255, 0.2);
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+
+        .input-circle::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+            z-index: -1;
+            filter: blur(10px);
+            opacity: 0.7;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+
+        .input-circle:hover {
+            transform: scale(1.15) rotate(5deg);
+            box-shadow: 0 0 50px rgba(0, 255, 136, 1);
+        }
+
+        .input-symbol {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2em;
+            font-weight: 900;
+        }
+
+        .input-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2em;
+            margin-top: 5px;
+            text-shadow: 0 0 10px #000;
+        }
+
+        .input-control {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: rgba(0, 255, 136, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            min-width: 280px;
+        }
+
+        .input-label {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            color: #00ff88;
+            font-size: 1.2em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .input-description {
+            font-size: 0.95em;
+            color: #aaa;
+            line-height: 1.4;
+        }
+
+        .slider {
+            width: 100%;
+            height: 12px;
+            border-radius: 6px;
+            outline: none;
+            -webkit-appearance: none;
+            background: linear-gradient(90deg, #0a0a0a, #00ff88);
+            border: 2px solid #00ff88;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
+            border: 3px solid #fff;
+            transition: all 0.3s;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.3);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 1);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+            cursor: pointer;
+            border: 3px solid #fff;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
+        }
+
+        /* CONEXIONES SVG FUTURISTAS */
+        .connections-layer {
+            position: relative;
+            width: 300px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .connection-line {
+            stroke-width: 4;
+            filter: drop-shadow(0 0 8px currentColor);
+            animation: dataFlow 2s infinite;
+        }
+
+        @keyframes dataFlow {
+            0%, 100% { stroke-dashoffset: 0; }
+            50% { stroke-dashoffset: 20; }
+        }
+
+        .weight-badge {
+            position: absolute;
+            background: linear-gradient(135deg, #ff0066, #ff3399);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            font-size: 1.1em;
+            box-shadow: 0 0 25px rgba(255, 0, 102, 0.6);
+            z-index: 3;
+            transition: all 0.3s;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            letter-spacing: 2px;
+        }
+
+        .weight-badge:hover {
+            transform: scale(1.2) rotate(-5deg);
+            box-shadow: 0 0 40px rgba(255, 0, 102, 1);
+        }
+
+        /* NEURONA CENTRAL FUTURISTA */
+        .neuron-core {
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, #00ff88, #00d4ff, #0066ff);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+            font-size: 1.2em;
+            box-shadow: 
+                0 0 60px rgba(0, 255, 136, 0.8),
+                0 0 100px rgba(0, 212, 255, 0.6),
+                inset 0 0 30px rgba(255, 255, 255, 0.3);
+            position: relative;
+            border: 5px solid rgba(255, 255, 255, 0.5);
+            animation: neuronPulse 3s infinite;
+        }
+
+        @keyframes neuronPulse {
+            0%, 100% {
+                box-shadow: 
+                    0 0 60px rgba(0, 255, 136, 0.8),
+                    0 0 100px rgba(0, 212, 255, 0.6);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 
+                    0 0 80px rgba(0, 255, 136, 1),
+                    0 0 120px rgba(0, 212, 255, 0.8),
+                    0 0 160px rgba(0, 102, 255, 0.4);
+                transform: scale(1.05);
+            }
+        }
+
+        .neuron-core::before {
+            content: '';
+            position: absolute;
+            width: 240px;
+            height: 240px;
+            border-radius: 50%;
+            border: 3px solid #00ff88;
+            animation: rotate 4s linear infinite;
+        }
+
+        .neuron-core::after {
+            content: '';
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            border-radius: 50%;
+            border: 2px solid #00d4ff;
+            animation: rotate 6s linear infinite reverse;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .neuron-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3em;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            z-index: 1;
+        }
+
+        .sum-display {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5em;
+            margin: 12px 0;
+            padding: 8px 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            z-index: 1;
+            text-shadow: 0 0 15px #fff;
+            color: #fff;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .neuron-formula {
+            font-size: 0.85em;
+            opacity: 0.9;
+            text-align: center;
+            margin-top: 8px;
+            line-height: 1.4;
+            z-index: 1;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        /* SALIDA FUTURISTA */
+        .output-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            animation: slideInRight 0.8s ease;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .output-circle {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, #ff0066, #ff3399);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 0 40px rgba(255, 0, 102, 0.6);
+            transition: all 0.5s ease;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+
+        .output-circle::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff0066, #ff3399);
+            z-index: -1;
+            filter: blur(15px);
+            opacity: 0.7;
+        }
+
+        .output-circle.active-yes {
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+            box-shadow: 
+                0 0 50px rgba(0, 255, 136, 1),
+                0 0 80px rgba(0, 212, 255, 0.6);
+            animation: successBurst 0.6s;
+        }
+
+        .output-circle.active-yes::before {
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+        }
+
+        .output-circle.active-no {
+            background: linear-gradient(135deg, #ff0066, #cc0033);
+            box-shadow: 
+                0 0 50px rgba(255, 0, 102, 1),
+                0 0 80px rgba(204, 0, 51, 0.6);
+            animation: errorShake 0.6s;
+        }
+
+        @keyframes successBurst {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2) rotate(10deg); }
+        }
+
+        @keyframes errorShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-15px) rotate(-5deg); }
+            75% { transform: translateX(15px) rotate(5deg); }
+        }
+
+        .output-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1em;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+        }
+
+        .output-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3em;
+            text-shadow: 0 0 20px #fff;
+        }
+
+        .output-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3em;
+            margin-top: 8px;
+            letter-spacing: 3px;
+        }
+
+        .output-decision {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #00ff88;
+            border-radius: 15px;
+            padding: 20px 30px;
+            text-align: center;
+        }
+
+        .decision-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1em;
+            color: #00d4ff;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .decision-text {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        /* PANEL DE CONTROL */
+        .control-panel {
+            background: rgba(0, 0, 0, 0.9);
+            border: 3px solid #00d4ff;
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 40px;
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.3);
+        }
+
+        .control-title {
+            font-family: 'Orbitron', sans-serif;
+            color: #00d4ff;
+            font-size: 2em;
+            margin-bottom: 30px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 0 0 20px #00d4ff;
+        }
+
+        .bias-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            padding: 30px;
+            background: rgba(0, 255, 136, 0.05);
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 2px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .bias-label {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            color: #00ff88;
+            font-size: 1.3em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .bias-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2em;
+            color: #00d4ff;
+            font-weight: bold;
+            min-width: 80px;
+            text-align: center;
+            text-shadow: 0 0 15px #00d4ff;
+        }
+
+        /* BOTONES FUTURISTAS */
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 18px 35px;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.6);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #ff0066, #ff3399);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(255, 0, 102, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255, 0, 102, 0.6);
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, #9d00ff, #5e00ff);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(157, 0, 255, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-accent:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(157, 0, 255, 0.6);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1200px) {
+            .perceptron-flow {
+                flex-direction: column;
+                gap: 50px;
+            }
+
+            .connections-layer {
+                width: 100%;
+                height: 80px;
+            }
+
+            .input-section, .output-section {
+                width: 100%;
+            }
+
+            h1 {
+                font-size: 2.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Fondo animado -->
+    <div class="background-grid"></div>
+    <div class="background-particles" id="particles"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="glitch-wrapper">
+                <h1>PERCEPTRÓN NEURAL</h1>
+            </div>
+            <p class="subtitle">Sistema de Predicción de Inteligencia Artificial</p>
+            <div class="version-badge">ROSENBLATT v1.0 | 1958</div>
+        </div>
+
+        <!-- CONTEXTO DE PREDICCIÓN -->
+        <div class="prediction-context">
+            <h2 class="context-title">🎯 Misión de Predicción</h2>
+
+            <div class="context-grid">
+                <div class="context-card">
+                    <span class="context-card-icon">🍎</span>
+                    <h3 class="context-card-title">Objeto Analizado</h3>
+                    <p class="context-card-desc">
+                        <strong>Una Manzana</strong><br>
+                        El perceptrón debe analizar una manzana y decidir si vale la pena comprarla basándose en sus características visuales y precio.
+                    </p>
+                </div>
+
+                <div class="context-card">
+                    <span class="context-card-icon">📊</span>
+                    <h3 class="context-card-title">Características Medidas</h3>
+                    <p class="context-card-desc">
+                        <strong>3 Sensores de Entrada:</strong><br>
+                        1. Color (¿Es roja y atractiva?)<br>
+                        2. Tamaño (¿Es grande y jugosa?)<br>
+                        3. Precio (¿Es económica?)
+                    </p>
+                </div>
+
+                <div class="context-card">
+                    <span class="context-card-icon">🤖</span>
+                    <h3 class="context-card-title">Proceso Neural</h3>
+                    <p class="context-card-desc">
+                        <strong>Análisis Ponderado:</strong><br>
+                        Cada característica tiene un peso de importancia. La neurona suma todo y decide según un umbral de activación.
+                    </p>
+                </div>
+            </div>
+
+            <div class="prediction-goal">
+                <h3 class="prediction-goal-title">⚡ Decisión a Predecir</h3>
+                <p class="prediction-goal-text">
+                    <strong>¿COMPRAR O NO COMPRAR LA MANZANA?</strong><br>
+                    Salida 1 = SÍ (Buena compra) | Salida 0 = NO (Mala compra)<br>
+                    <em>El sistema aprende qué combinación de características hace que una manzana sea deseable</em>
+                </p>
+            </div>
+        </div>
+
+        <!-- PERCEPTRÓN -->
+        <div class="perceptron-container">
+            <div class="perceptron-flow">
+                <!-- ENTRADAS -->
+                <div class="input-section">
+                    <div class="input-node">
+                        <div class="input-circle" id="input1-circle">
+                            <span class="input-symbol">x₁</span>
+                            <span class="input-value" id="input1-display">0.0</span>
+                        </div>
+                        <div class="input-control">
+                            <label class="input-label">🔴 Color Rojo</label>
+                            <p class="input-description">¿Qué tan roja y atractiva es la manzana? (0=Verde/Pálida, 1=Roja intensa)</p>
+                            <input type="range" class="slider" id="input1" min="0" max="1" step="0.1" value="0">
+                        </div>
+                    </div>
+
+                    <div class="input-node">
+                        <div class="input-circle" id="input2-circle">
+                            <span class="input-symbol">x₂</span>
+                            <span class="input-value" id="input2-display">0.0</span>
+                        </div>
+                        <div class="input-control">
+                            <label class="input-label">📏 Tamaño</label>
+                            <p class="input-description">¿Qué tan grande es la manzana? (0=Muy pequeña, 1=Muy grande y jugosa)</p>
+                            <input type="range" class="slider" id="input2" min="0" max="1" step="0.1" value="0">
+                        </div>
+                    </div>
+
+                    <div class="input-node">
+                        <div class="input-circle" id="input3-circle">
+                            <span class="input-symbol">x₃</span>
+                            <span class="input-value" id="input3-display">0.0</span>
+                        </div>
+                        <div class="input-control">
+                            <label class="input-label">💰 Precio Bajo</label>
+                            <p class="input-description">¿Qué tan económica es? (0=Muy cara, 1=Muy barata, excelente precio)</p>
+                            <input type="range" class="slider" id="input3" min="0" max="1" step="0.1" value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONEXIONES -->
+                <div class="connections-layer">
+                    <svg id="connections-svg" viewBox="0 0 300 350"></svg>
+                    <div class="weight-badge" id="weight1" style="top: 12%; left: 38%;">w₁ = 0.3</div>
+                    <div class="weight-badge" id="weight2" style="top: 48%; left: 38%;">w₂ = 0.5</div>
+                    <div class="weight-badge" id="weight3" style="top: 84%; left: 38%;">w₃ = 0.7</div>
+                </div>
+
+                <!-- NEURONA -->
+                <div class="neuron-core">
+                    <div class="neuron-label">NEURONA</div>
+                    <div class="sum-display" id="sum-display">0.00</div>
+                    <div class="neuron-formula">Σ(xᵢ × wᵢ) + bias</div>
+                </div>
+
+                <!-- CONEXIÓN SALIDA -->
+                <div class="connections-layer" style="width: 180px;">
+                    <svg viewBox="0 0 180 200">
+                        <line x1="0" y1="100" x2="180" y2="100" stroke="#00ff88" stroke-width="5" class="connection-line" stroke-dasharray="10,5"/>
+                    </svg>
+                </div>
+
+                <!-- SALIDA -->
+                <div class="output-section">
+                    <div class="output-circle" id="output-circle">
+                        <span class="output-label">OUTPUT</span>
+                        <span class="output-value" id="output-value">0</span>
+                        <span class="output-text" id="output-text">NO</span>
+                    </div>
+                    <div class="output-decision">
+                        <div class="decision-label">🎯 Decisión Final</div>
+                        <div class="decision-text" id="decision-text">NO COMPRAR</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANEL DE CONTROL -->
+        <div class="control-panel">
+            <h3 class="control-title">⚙️ Centro de Control Neural</h3>
+
+            <div class="bias-control">
+                <label class="bias-label">⚡ Sesgo (Bias):</label>
+                <input type="range" class="slider" id="bias" min="-2" max="2" step="0.1" value="-0.5" style="width: 350px;">
+                <span class="bias-value" id="bias-display">-0.5</span>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="randomInputs()">
+                    <span>🎲 ALEATORIO</span>
+                </button>
+                <button class="btn btn-secondary" onclick="resetAll()">
+                    <span>🔄 RESET</span>
+                </button>
+                <button class="btn btn-accent" onclick="examplePerfect()">
+                    <span>✨ MANZANA PERFECTA</span>
+                </button>
+                <button class="btn btn-primary" onclick="exampleGood()">
+                    <span>✅ BUENA COMPRA</span>
+                </button>
+                <button class="btn btn-secondary" onclick="exampleBad()">
+                    <span>❌ MALA COMPRA</span>
+                </button>
+                <button class="btn btn-accent" onclick="exampleBorderline()">
+                    <span>⚠️ CASO LÍMITE</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Crear partículas animadas
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 15 + 's';
+            particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+            particlesContainer.appendChild(particle);
+        }
+
+        // Pesos del perceptrón
+        const weights = {
+            w1: 0.3,
+            w2: 0.5,
+            w3: 0.7
+        };
+
+        // Elementos del DOM
+        const input1 = document.getElementById('input1');
+        const input2 = document.getElementById('input2');
+        const input3 = document.getElementById('input3');
+        const biasSlider = document.getElementById('bias');
+
+        const input1Display = document.getElementById('input1-display');
+        const input2Display = document.getElementById('input2-display');
+        const input3Display = document.getElementById('input3-display');
+        const biasDisplay = document.getElementById('bias-display');
+        const sumDisplay = document.getElementById('sum-display');
+        const outputValue = document.getElementById('output-value');
+        const outputText = document.getElementById('output-text');
+        const outputCircle = document.getElementById('output-circle');
+        const decisionText = document.getElementById('decision-text');
+
+        // Dibujar conexiones SVG
+        function drawConnections() {
+            const svg = document.getElementById('connections-svg');
+            const lines = [
+                { y1: 60, color: '#00ff88' },
+                { y1: 175, color: '#00d4ff' },
+                { y1: 290, color: '#00ff88' }
+            ];
+
+            svg.innerHTML = '';
+            lines.forEach((line, index) => {
+                const lineElement = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                lineElement.setAttribute('x1', '0');
+                lineElement.setAttribute('y1', line.y1);
+                lineElement.setAttribute('x2', '300');
+                lineElement.setAttribute('y2', '175');
+                lineElement.setAttribute('stroke', line.color);
+                lineElement.setAttribute('class', 'connection-line');
+                lineElement.setAttribute('stroke-dasharray', '5,5');
+                svg.appendChild(lineElement);
+            });
+        }
+
+        // Calcular y actualizar perceptrón
+        function updatePerceptron() {
+            const x1 = parseFloat(input1.value);
+            const x2 = parseFloat(input2.value);
+            const x3 = parseFloat(input3.value);
+            const bias = parseFloat(biasSlider.value);
+
+            // Actualizar displays
+            input1Display.textContent = x1.toFixed(1);
+            input2Display.textContent = x2.toFixed(1);
+            input3Display.textContent = x3.toFixed(1);
+            biasDisplay.textContent = bias.toFixed(1);
+
+            // Calcular suma
+            const sum = (x1 * weights.w1) + (x2 * weights.w2) + (x3 * weights.w3) + bias;
+            sumDisplay.textContent = sum.toFixed(2);
+
+            // Función de activación
+            const output = sum >= 0 ? 1 : 0;
+            outputValue.textContent = output;
+
+            // Actualizar visualización
+            if (output === 1) {
+                outputText.textContent = 'SÍ';
+                outputCircle.className = 'output-circle active-yes';
+                decisionText.textContent = '✅ COMPRAR LA MANZANA';
+                decisionText.style.color = '#00ff88';
+            } else {
+                outputText.textContent = 'NO';
+                outputCircle.className = 'output-circle active-no';
+                decisionText.textContent = '❌ NO COMPRAR';
+                decisionText.style.color = '#ff0066';
+            }
+        }
+
+        // Funciones de ejemplo
+        function randomInputs() {
+            input1.value = Math.random().toFixed(1);
+            input2.value = Math.random().toFixed(1);
+            input3.value = Math.random().toFixed(1);
+            updatePerceptron();
+        }
+
+        function resetAll() {
+            input1.value = 0;
+            input2.value = 0;
+            input3.value = 0;
+            biasSlider.value = -0.5;
+            updatePerceptron();
+        }
+
+        function examplePerfect() {
+            input1.value = 1.0;
+            input2.value = 1.0;
+            input3.value = 1.0;
+            biasSlider.value = -0.5;
+            updatePerceptron();
+        }
+
+        function exampleGood() {
+            input1.value = 0.8;
+            input2.value = 0.7;
+            input3.value = 0.9;
+            biasSlider.value = -0.5;
+            updatePerceptron();
+        }
+
+        function exampleBad() {
+            input1.value = 0.2;
+            input2.value = 0.3;
+            input3.value = 0.1;
+            biasSlider.value = -0.5;
+            updatePerceptron();
+        }
+
+        function exampleBorderline() {
+            input1.value = 0.5;
+            input2.value = 0.4;
+            input3.value = 0.6;
+            biasSlider.value = -0.5;
+            updatePerceptron();
+        }
+
+        // Event listeners
+        input1.addEventListener('input', updatePerceptron);
+        input2.addEventListener('input', updatePerceptron);
+        input3.addEventListener('input', updatePerceptron);
+        biasSlider.addEventListener('input', updatePerceptron);
+
+        // Inicializar
+        drawConnections();
+        updatePerceptron();
+    </script>
+</body>
+</html
